@@ -5,10 +5,9 @@ description = ""
 authors = ["LstCenturion <allan.yoshioka@gmail.com>"]
 readme = "README.md"
 packages = [
-    { include = "src", from = "." },
-    { include = "db", from = "." }
+    { include = ".src" },
+    { include = ".db" }
 ]
-
 
 [tool.poetry.dependencies]
 python = "^3.10"

@@ -1,0 +1,53 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.env
+.venv/
+venv/
+env/
+env.bak/
+venv.bak/
+
+# Poetry files
+poetry.lock
+*.toml
+
+# IDE files
+.idea/
+.vscode/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Python egg files
+*.egg-info/
+*.egg
+
+# Distribution / packaging
+build/
+dist/
+*.whl
+
+# Python testing
+.coverage
+.coverage.*
+nosetests.xml
+test.xml
+coverage.xml
+*.cover
+
+# Other
+*.DS_Store
+*.log
+*.sqlite3
+*.db
+*.pkl
+*.tmp
+*.pid
+*.seed
+
+# Environment variable files
+.env
+*.env
