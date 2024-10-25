@@ -1,9 +1,11 @@
 services:
   app:
     # I'm importing from repository
-    image: lstcenturion/app
+    # image: lstcenturion/app
     # Doing local
-    #build:
-    #  context: ./app
-    #  dockerfile: Dockerfile
+    build:
+      context: ./app
+      dockerfile: Dockerfile
     command: poetry run uvicorn src.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - 8000:8000
