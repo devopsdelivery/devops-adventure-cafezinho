@@ -1,3 +1,9 @@
+# Cafezinho Team
+
+- Allan Yoshioka
+- Luiza Peres
+
+
 # DevOps Adventure
 
 ## The goal
