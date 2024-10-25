@@ -1,66 +1,126 @@
-import os
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String
-from databases import Database
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
+import psycopg2
 
-# Database configuration
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:admin@localhost:5432/movies")
 
-# Initialize database connection and metadata
-database = Database(DATABASE_URL)
-metadata = MetaData()
+connection = psycopg2.connect(database="postgres", user='postgres', password='postgres', host="localhost", port=5433)
 
-# Define the 'favorites' table schema
-favorites = Table(
-    "favorites",
-    metadata,
-    Column("imdbID", Integer, primary_key=True),
-    Column("title", String(255), nullable=False),
-    Column("year", String(4), nullable=False),
-    Column("director", String(255)),
-    Column("plot", String),
-)
 
-# Create an engine to manage the table structure
-engine = create_engine(DATABASE_URL)
-metadata.create_all(engine)
+cursor = connection.cursor()
 
-# Function to connect and disconnect the database
-async def connect_db():
-    await database.connect()
+sql_context ="""
+select * from favorites;
+"""
 
-async def disconnect_db():
-    await database.disconnect()
+def get_db_connection():
+    try:
+        connection = psycopg2.connect(
+            database="postgres", 
+            user='postgres', 
+            password='postgres', 
+            host="localhost", 
+            port=5433
+        )
+        return connection
+    except (Exception, psycopg2.DatabaseError) as error:
+        print("Error while connecting to PostgreSQL", error)
+        return None
 
-# Function to add a movie to favorites
-async def add_movie(movie):
-    query = favorites.insert().values(
-        imdbID=movie["imdbID"],
-        title=movie["Title"],
-        year=movie["Year"],
-        director=movie["Director"],
-        plot=movie["Plot"]
-    )
-    await database.execute(query)
+def add_movie(movie: dict):
+    try:
+        connection = get_db_connection()
+        
+        # Create a cursor object
+        cursor = connection.cursor()
+        
+        # Define the SQL INSERT query
+        insert_query = """
+        INSERT INTO favorites (imdbID, title, year, director, plot) 
+        VALUES (%s, %s, %s, %s, %s);
+        """
+        
+        # Execute the query with the provided data
+        cursor.execute(insert_query, (movie["imdbID"], movie["title"], movie["year"], movie["director"], movie["plot"]))
+        
+        # Commit the transaction
+        connection.commit()
+        
+        print("Record inserted successfully")
+        
+    except (Exception, psycopg2.DatabaseError) as error:
+        print("Error while inserting into PostgreSQL", error)
+    finally:
+        # Close the cursor and connection
+        if connection:
+            cursor.close()
+            connection.close()
 
-# Function to retrieve all favorite movies
-async def get_favorites():
-    query = favorites.select()
-    return await database.fetch_all(query)
+def add_favorite(imdbID):
+    try:
+        connection = get_db_connection()
+        
+        # Create a cursor object
+        cursor = connection.cursor()
+        
+        # Define the SQL SELECT query
+        search_query = """
+        SELECT * FROM movie WHERE imdbID = %s;
+        """
+        
+        # Execute the query with the provided imdbID
+        cursor.execute(search_query, (imdbID,))
+        
+        # Fetch the result
+        movie = cursor.fetchone()
+        
+        if movie:
+            print("Movie found:", movie)
+        else:
+            print("Movie not found")
+        
+    except (Exception, psycopg2.DatabaseError) as error:
+        print("Error while fetching from PostgreSQL", error)
+    finally:
+        # Close the cursor and connection
+        if connection:
+            cursor.close()
+            connection.close()
 
-# Optional: Function to get connection details for debugging
-def get_connection_info():
-    return {
-        "database": os.path.basename(DATABASE_URL.split("/")[-1]),
-        "user": DATABASE_URL.split(":")[1].split("//")[-1],
-        "host": DATABASE_URL.split("@")[-1].split(":")[0],
-        "port": DATABASE_URL.split(":")[-1].split("/")[0],
-    }
+def remove_movie(imdbID):
+    try:
+        connection = get_db_connection()
+        
+        # Create a cursor object
+        cursor = connection.cursor()
+        
+        # Define the SQL DELETE query
+        delete_query = """
+        DELETE FROM favorites WHERE imdbID = %s;
+        """
+        
+        # Execute the query with the provided imdbID
+        cursor.execute(delete_query, (imdbID,))
+        
+        # Commit the transaction
+        connection.commit()
+        
+        print("Record deleted successfully")
+        
+    except (Exception, psycopg2.DatabaseError) as error:
+        print("Error while deleting from PostgreSQL", error)
+    finally:
+        # Close the cursor and connection
+        if connection:
+            cursor.close()
+            connection.close()
 
-# Example usage of get_connection_info (this could be called in your main application)
-if __name__ == "__main__":
-    connection_info = get_connection_info()
-    print("Database Connection Info:")
-    print(f"Database Name: {connection_info['database']}")
-    print(f"User: {connection_info['user']}")
-    print(f"Host: {connection_info['host']}")
-    print(f"Port: {connection_info['port']}")
+
+
+cursor.execute(sql_context)
+
+# Fetch all rows from database
+record = cursor.fetchall()
+
+print("Data from Database:- ", record)
+
+
